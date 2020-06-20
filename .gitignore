@@ -1,3 +1,7 @@
+*.sw[a-z]
+.DS_Store
+
+node_modules
 .eunit
 *.o
 *.beam
