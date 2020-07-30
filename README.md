@@ -31,6 +31,48 @@ See [build-instructions](./client/ts/README.md).
 ![dashboard-1.png](./images/transfer-alice-bob-1.png)
 
 #### Call contract
+
+**contract-1.aes**
+```
+contract Contract1 = 
+    entrypoint foo() = 123
+    entrypoint bar(x : int, y) = x + 42
+```
+
+**Example code**, load contract source, compile, deploy and call `foo(1, 23)`
+```typescript
+import * as utils from '../utils'
+import * as ae_utils from '../ae-utils'
+
+
+// Get the universal flavor
+const universal = await ae_utils.getCachedUniversal()
+
+// Load contract source
+const contractSrc = await utils.getContract('contract-1.aes')
+
+// Compile
+const compileResult = await universal.contractCompile(contractSrc)
+
+// Deploy
+const deployResult = await compileResult.deploy([])
+
+// Call entrypoint bar(1, 23)
+const callResult = await deployResult.call('bar', ['1', '23'])
+
+// Log result
+const r = callResult.result
+console.log('returnValue=' + r.returnValue)
+console.log('gasPrice=' + r.gasPrice)
+console.log('gasUsed=' + r.gasUsed)
+console.log('height=' + r.height)
+
+// Decode result value
+const decodedValue = await callResult.decode()
+console.log('decodedValue=' + decodedValue)
+```
+
+
 ![foo](./images/contract-1-1.gif)
 
 
