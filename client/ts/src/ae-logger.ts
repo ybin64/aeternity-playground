@@ -8,7 +8,6 @@ export type LoggerToken = {
     txt : string
 }
 
-
 export type LogItem = {
     id : number
     network : ae_network.NetworkName
@@ -21,6 +20,46 @@ export type LogItem = {
     state : 'begin' | 'end-ok' | 'end-error'
 }
 
+export function beginLog(txt: string) : LoggerToken {
+    const token : LoggerToken = {
+        id : _id++,
+        beginTime : new Date(),
+        txt : txt
+    }
+
+    _addBeginLog(token)
+
+    //console.info(`${_prefix('BEGIN      ', token)}${txt}`)
+
+    return token
+}
+
+export function endLogOk(token: LoggerToken, txt? : string) {
+    //console.info(`${_prefix('END OK     ', token)}${txt}`)
+
+    if (txt === undefined) {
+        txt = token.txt
+    }
+
+    _addEndLogOk(token, txt)
+}
+
+export function endLogError(token: LoggerToken, txt : string, err : any) {
+    //console.error(`${_prefix('END ERROR', token)}${txt}`)
+    _addEndLogError(token, txt, err)
+}
+
+export function endOkText(token : LoggerToken) : string | false {
+    const item = _findLogItem(_logItems, token.id)
+    if (item.endText === '') {
+        return false
+    } else {
+        return item.endText
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Privat functions
 
 function _prefix(type: string, token : LoggerToken) {
     return `ae_logger : [${type}] : ${token.id} : `
@@ -41,6 +80,7 @@ function _findLogItem(items: LogItem[], id: number) : LogItem {
 
     throw new Error(`Can't find log item with id=${id}`)
 }
+
 function _addBeginLog(token : LoggerToken) {
     let items = _logItems.slice()
 
@@ -90,26 +130,3 @@ function _addEndLogError(token : LoggerToken, txt : string, err : any) {
 }
 
 
-export function beginLog(txt: string) : LoggerToken {
-    const token : LoggerToken = {
-        id : _id++,
-        beginTime : new Date(),
-        txt : txt
-    }
-
-    _addBeginLog(token)
-
-    console.info(`${_prefix('BEGIN      ', token)}${txt}`)
-
-    return token
-}
-
-export function endLogOk(token: LoggerToken, txt : string) {
-    console.info(`${_prefix('END OK     ', token)}${txt}`)
-    _addEndLogOk(token, txt)
-}
-
-export function endLogError(token: LoggerToken, txt : string, err : any) {
-    console.error(`${_prefix('END ERROR', token)}${txt}`)
-    _addEndLogError(token, txt, err)
-}

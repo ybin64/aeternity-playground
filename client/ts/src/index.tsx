@@ -10,9 +10,11 @@ import {getStore} from './global-state'
 import Dashboard, {drawerListItems} from './templates/Dashboard'
 import MainView from './views/MainView'
 import TransferAliceBobView from './views/TransferAliceBobView'
+import Contract1View from './views/Contract1View'
 
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
+import DashboardIcon from '@material-ui/icons/Dashboard'
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart'
+import Contract1Icon from '@material-ui/icons/Assignment'
 
 import {generateKeyPair} from '@aeternity/aepp-sdk/es/utils/crypto'
 
@@ -22,12 +24,18 @@ import * as global_state from './global-state'
 // During development
 //console.log('New keypair : ', generateKeyPair())
 
-
+/**
+ * Using .html extension in links due to webpack dev-server
+ * 
+ * NOTE: Don't forget to add files in the ./views directory
+ */
 const drawerMainListItems = drawerListItems([
     {text : 'Dashboard', 
-        link : '/dashboard', icon : <DashboardIcon />},
+        link : '/views/dashboard.html', icon : <DashboardIcon />},
     {text : 'Alice <-> Bob Transfer Funds', 
-        link : '/transfer-alice-bob', icon : <ShoppingCartIcon />}
+        link : '/views/transfer-alice-bob.html', icon : <ShoppingCartIcon />},
+    {text : 'Contract - 1', 
+        link : '/views/contract-1.html', icon : <Contract1Icon />}
 ])
 
 
@@ -38,11 +46,14 @@ function _App(p: {}) {
                 <Route path="/about">
                     <div>about</div>
                 </Route>
-                <Route path="/dashboard">
+                <Route path="/views/dashboard.html">
                     <MainView />
                 </Route>
-                <Route path="/transfer-alice-bob">
+                <Route path="/views/transfer-alice-bob.html">
                     <TransferAliceBobView />
+                </Route>
+                <Route path="/views/contract-1.html">
+                    <Contract1View />
                 </Route>
                 <Route path="/">
                     <MainView />
@@ -68,6 +79,7 @@ function _init() {
 _init()
 
 setTimeout(() => {
+    global_state.checkCompilerVersion()
     global_state.updateAliceBalance()
     global_state.updateBobBalance()
 }, 500)

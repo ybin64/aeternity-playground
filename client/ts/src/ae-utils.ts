@@ -57,6 +57,8 @@ export async function getCachedUniversal() : Promise<Universal> {
     return _cachedUniversal
 }
 
+
+
 export async function getChain(chain? : Chain) : Promise<Chain> {
     if (chain) {
         return chain
@@ -83,6 +85,10 @@ export async function getBalance(address : string, chain? : Chain) : Promise<num
 export async function spend(amount : number | string, recipientId : string, ae? : Ae) : Promise<SpendResult> {
     ae = await getAe(ae)
     return ae.spend(amount, recipientId)
+}
+
+export async function compileContract(text : string) {
+
 }
 
 

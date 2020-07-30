@@ -28,7 +28,8 @@ function _createStyles(styles : any) {
 export const styles = (theme: Theme) => {
     const networkSelectColor = 'white'
 
-    return createStyles({
+    //return createStyles({
+    return _createStyles({
 
         // Dashboard styles BEGIN
         root: {
@@ -273,9 +274,17 @@ export const styles = (theme: Theme) => {
             '& .virtualized-table' : {
                 minHeight : '380px'
             }
+        },
+
+
+        // Views
+        contract1View : {
+            '& .sophia-editor' : {
+                minHeight : '250px',
+                maxHeight : '250px',
+                overflow : 'auto'
+            }
         }
-
-
     })
 }
 

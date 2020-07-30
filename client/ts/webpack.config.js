@@ -4,6 +4,25 @@ var path = require('path');
 module.exports = {
     mode: "development",
 
+    entry: {
+        index: "./src/index.tsx",
+    },
+
+    output: {
+        filename: "[name].bundle.js",
+        path: __dirname + "/dist"
+    },
+
+    optimization: {
+        splitChunks: {
+            chunks: "all",
+            cacheGroups: {
+                commons: { test: /[\\/]node_modules[\\/]/, name: "vendors", chunks: "all" }
+              }
+        }
+    },
+
+
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
 
@@ -14,7 +33,17 @@ module.exports = {
 
 
     devServer: {
-        contentBase: path.join(__dirname, 'dist'),
+        contentBase: [
+            path.join(__dirname, 'dist'),
+            path.join(__dirname, 'contracts'),
+            path.join(__dirname, 'views')
+        ],
+        contentBasePublicPath : [
+            '',
+            '/contracts',
+            '/views'
+        ],
+
         compress: true,
         port: 9000,
         mimeTypes: {

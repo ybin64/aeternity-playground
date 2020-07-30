@@ -12,6 +12,8 @@ import ErrorIcon from '@material-ui/icons/ErrorOutlineTwoTone'
 import * as mui_styles from '../mui-styles'
 import * as ae_logger from '../ae-logger'
 
+import * as utils from '../utils'
+
 import VirtualizedTable, {ColumnDescription, CustomCellArgs} from './VirtualizedTable'
 
 
@@ -31,6 +33,9 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
         super(props, ctx)
 
         this._customStateCell = this._customStateCell.bind(this)
+        this._customBeginTimeCell = this._customBeginTimeCell.bind(this)
+        this._customElapsedTimeCell = this._customElapsedTimeCell.bind(this)
+        this._customTextCell = this._customTextCell.bind(this)
         this._customErrorCell = this._customErrorCell.bind(this)
 
         this.state = {
@@ -47,16 +52,27 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
             }, {
                 dataKey : 'state',
                 label   : 'State',
-                width   : 100,
+                width   : 60,
                 customCell : this._customStateCell
+            }, {
+                dataKey : 'beginTime',
+                label   : 'Time',
+                width   : 100,
+                customCell : this._customBeginTimeCell
+            }, {
+                dataKey : 'endTime',
+                label : '',
+                width : 80,
+                customCell : this._customElapsedTimeCell
             }, {
                 dataKey : 'text',
                 label  : 'Text',
-                width  : 600
+                width  : 700,
+                customCell : this._customTextCell
             }, {
-                dataKey : 'errorText',
-                label : 'Error',
-                width : 600,
+                dataKey    : 'errorText',
+                label      : 'Error',
+                width      : 600,
                 customCell : this._customErrorCell
             }]
         }
@@ -116,7 +132,43 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
             content = <span>{text}</span>
         }
 
-        return <TableCell className={args.className}>{content}</TableCell>
+        return <TableCell component='div' className={args.className}>{content}</TableCell>
+    }
+
+    private _customBeginTimeCell(args : CustomCellArgs) {
+        const row = this._getRow(args.rowIndex)
+        let text = utils.date2TimeStr(row.beginTime)
+
+        /*
+        if (row.endTime !== undefined) {
+            const dt = row.endTime.getTime() - row.beginTime.getTime()
+            text += ' - ' + utils.msToStr(dt)
+        }
+        */
+
+        return <TableCell component='div' className={args.className}>{text}</TableCell>
+    }
+
+    private _customElapsedTimeCell(args : CustomCellArgs) {
+        const row = this._getRow(args.rowIndex)
+        let text = ''
+
+        if (row.endTime !== undefined) {
+            const dt = row.endTime.getTime() - row.beginTime.getTime()
+            text = utils.msToStr(dt)  
+        }
+        return <TableCell component='div' className={args.className}>{text}</TableCell>
+    }
+
+    private _customTextCell(args : CustomCellArgs) {
+        const row = this._getRow(args.rowIndex)
+        let text = row.text
+
+        if ((row.state === 'end-ok') && (row.endText !== '')) {
+            text = row.endText
+        }
+
+        return <TableCell component='div' className={args.className}>{text}</TableCell>
     }
 
     private _customErrorCell(args : CustomCellArgs) {

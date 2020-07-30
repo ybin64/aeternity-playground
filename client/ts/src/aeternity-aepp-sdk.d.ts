@@ -157,6 +157,427 @@ declare module '@aeternity/aepp-sdk/accounts' {
 }
 
 // -----------------------------------------------------------------------------
+// 
+
+/**
+ * See es/contract/index.js
+ */
+declare module '@aeternity/aepp-sdk/contract' {
+    type ContractGetACIResult = {
+        source : string
+        options : any[]
+    }
+
+    interface ContractBase {
+        /**
+         * Get contract ACI
+         * @function contractGetACI
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype (source: String, options: Array) => aciObject: Promise[Object]
+         * @param {String} source - Contract source code
+         * @param {Object} [options={}]  Options
+         * @param {Object} [options.filesystem]  Contract external namespaces map
+         * @param {Object} [options.backend]  Contract vm(default: aevm)
+         * @return {Object} - Contract aci object
+         */
+         contractGetACI() : Promise<ContractGetACIResult>
+
+         // FIXME: More functions in ContractBase
+
+
+        /**
+         * Decode contract call result data
+         * @function contractDecodeCallResultAPI
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype (source: String, fn: String, callValue: String, callResult: String, options: Array) => decodedResult: Promise[String]
+         * @param {String} source - Contract source
+         * @param {String} fn - Fn name
+         * @param {String} callValue - result data (cb_das...)
+         * @param {String} callResult - contract call result status('ok', 'revert', ...)
+         * @param {Object} [options={}]  Options
+         * @param {Object} [options.filesystem]  Contract external namespaces map
+         * @param {Object} [options.backend]  Contract vm(default: aevm)
+         * @return {String} - Decoded contract call result
+         */
+
+        /**
+         * Decode call data by source
+         * @function contractDecodeCallDataBySourceAPI
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype (source: String, function: String, callData: String, options: Array) => decodedResult: Promise[String]
+         * @param {String} source - contract source
+         * @param {String} function - function name
+         * @param {String} callData - Encoded contract call data
+         * @param {Object} [options={}]  Options
+         * @param {Object} [options.filesystem]  Contract external namespaces map
+         * @param {Object} [options.backend]  Contract vm(default: aevm)
+         * @return {String} - Decoded contract call data
+         */
+
+        /**
+         * Decode call data by bytecode
+         * @function contractDecodeCallDataByCodeAPI
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype (code: String, callData: String) => decodedResult: Promise[String]
+         * @param {String} code - contract byte code
+         * @param {String} callData - Encoded contract call data
+         * @param {String} backend - Contract vm(default: aevm)
+         * @return {String} - Decoded contract call data
+         */
+
+        /**
+         * Compile contract
+         * @function compileContractAPI
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype (code: String, options?: Object) => compiledContract: Object
+         * @param {String} code - Contract source code
+         * @param {Object} [options={}]  Options
+         * @param {Object} [options.filesystem]  Contract external namespaces map
+         * @param {Object} [options.backend]  Contract vm(default: aevm)
+         * @return {Object} Object which contain bytecode of contract
+         */
+        compileContractAPI(code : string, options? : {
+            filesystem : any
+            backend : any
+        }) : any
+
+        /**
+         * Set compiler url
+         * @function setCompilerUrl
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype (url: String) => void
+         * @param {String} url - Compiler url
+         * @return {void}
+         */
+        setCompilerUrl(url : string) : void
+
+        /**
+         * Get Compiler Version
+         * @function getCompilerVersion
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype () => String
+         * @return {String} Compiler version
+         */
+         getCompilerVersion() : Promise<string>
+    }
+
+    export default ContractBase
+}
+
+/**
+ * See es/contract/aci/index.js
+ */
+
+declare module '@aeternity/aepp-sdk/contract/aci' {
+    
+    export class ContractACI {
+
+        /**
+         * Generate contract ACI object with predefined js methods for contract usage - can be used for creating a reference to already deployed contracts
+         * @alias module:@aeternity/aepp-sdk/es/contract/aci
+         * @param {String} source Contract source code
+         * @param {Object} [options={}] Options object
+         * @param {String} [options.aci] Contract ACI
+         * @param {String} [options.contractAddress] Contract address
+         * @param {Object} [options.filesystem] Contact source external namespaces map
+         * @param {Object} [options.forceCodeCheck=true] Don't check contract code
+         * @param {Object} [options.opt] Contract options
+         * @return {ContractInstance} JS Contract API
+         * @example
+         * ```
+         * const contractIns = await client.getContractInstance(sourceCode)
+         * await contractIns.deploy([321]) or await contractIns.methods.init(321)
+         * const callResult = await contractIns.call('setState', [123]) or await contractIns.methods.setState.send(123, options)
+         * const staticCallResult = await contractIns.call('setState', [123], { callStatic: true }) or await contractIns.methods.setState.get(123, options)
+         * ```
+         * Also you can call contract like: await contractIns.methods.setState(123, options)
+         * Then sdk decide to make on-chain or static call(dry-run API) transaction based on function is stateful or not
+         */
+        getContractInstance(source : string, args : {
+            aci : string
+            contractAddress : string
+            fileSystem : any
+            forceCodeCheck? : boolean
+            opt : any
+        }) : any 
+
+    }
+
+    export default ContractACI
+}
+
+/**
+ * See es/contract/compiler.js
+ */
+declare module '@aeternity/aepp-sdk/contract/compiler' {
+    import ContractBase from '@aeternity/aepp-sdk/contract'
+
+    interface ContractCompilerAPI extends ContractBase {
+
+    } 
+
+    export default ContractCompilerAPI
+}
+
+
+/**
+ * See es/ae/contract.js
+ * FIXME: A lot of stuff missing from declaration
+ */
+declare module '@aeternity/aepp-sdk/ae/contract' {
+    import NodePool from '@aeternity/aepp-sdk/es/node-pool'
+
+    import ContractBase from '@aeternity/aepp-sdk/contract'
+    import ContractACI from '@aeternity/aepp-sdk/contract/aci'
+    import ContractCompilerAPI from '@aeternity/aepp-sdk/contract/compiler'
+
+    export type ContractCompileResult = {
+        bytecode : string 
+        //  deploy: async (init, options = {}) => this.contractDeploy(bytecode, source, init, R.merge(opt, options)),
+        deploy : (init : string | any[], options? : {filesystem? : ContractExternalNamespaceMap}) => Promise<ContractDeployReturnValue>
+
+        //  deployStatic: async (init, options = {}) => this.contractCallStatic(source, null, 'init', init, {
+        deployStatic : (init : string | any[], options? : {filesystem? : ContractExternalNamespaceMap}) => Promise<ContractCallStaticResult>
+
+        // encodeCall: async (name, args) => this.contractEncodeCall(source, name, args, R.merge(opt, options)),
+        encodeCall : (name : string, args : any[]) => Promise<string>
+    }
+
+    type ContractCallReturnValue = {
+        hash : string
+        result : ContractCallResult
+        decode : () => Promise<string>
+    }
+
+    // FIXME: Same as ContractDeployResult?
+    type ContractCallResult = {
+        callerId : string
+        callerNonce : number
+        contractId : string
+        gasPrice :  number
+        gasUsed : number
+        height : number
+        log : any[],
+        returnType : 'ok' | string
+        returnValue : string
+
+    }
+
+    type ContractExternalNamespaceMap = any
+    type CompilerBackend = 'aevm' | 'fate'
+
+    /** Argument's array or callData for call function */
+    type ArgsOrCallData = string | any[]
+
+    /**
+     * Encode call data for contract call
+     * @param source Contract source code
+     * @param name Name of function to call
+     * @param args Argument's for call
+     */
+    // async function contractEncodeCall (source, name, args, options) {     
+    type ContractEncodeCallF = (source : string, name : string, args : any[], options? : {
+        /** Contract external namespaces map */
+        filesystem? : ContractExternalNamespaceMap
+        /** Compiler backend */
+        backend? : CompilerBackend
+    }) => Promise<string>
+
+
+    /**
+     * Deploy contract to the node
+     * @param code Compiled contract
+     * @param source Contract source code
+     * @param initState Arguments of contract constructor(init) function. Can be array of arguments or callData string
+     * @example
+     * ```js
+     * const deployed = await client.contractDeploy(bytecode, source, init = [], options)
+     * {
+     *   owner: OWNER_PUB_KEY,
+     *   transaction: TX_HASH,
+     *   address: CONTRACT_ADDRESS,
+     *   createdAt: Date,
+     *   result: DEPLOY_TX_DATA,
+     *   call: (fnName, args = [], options) => Call contract function,
+     *   callStatic: (fnName, args = [], options) => Static all contract function
+     * }
+     * ```
+     */
+    // async function contractDeploy (code, source, initState = [], options = {}) {
+    type ContractDeployF = (code : string, source : string, initState? : ArgsOrCallData, options? : {
+        /** Contract external namespaces map */
+        filesystem? : ContractExternalNamespaceMap
+    }) =>  Promise<ContractDeployReturnValue>
+
+    type ContractDeployReturnValue = {
+        owner : string
+        transaction : string
+        address : string
+        createdAt : Date
+        result : ContractDeployResult
+
+        //  call: async (name, args = [], options = {}) => this.contractCall(source, contractId, name, args, R.merge(opt, options)),
+        call : (fnName : string, args? : ArgsOrCallData, options? : {filesystem? : ContractExternalNamespaceMap}) => Promise<ContractCallReturnValue>
+
+        // callStatic: async (name, args = [], options = {}) => this.contractCallStatic(source, contractId, name, args, {
+        callStatic : (fnName : string, args? : ArgsOrCallData, options? : any) => Promise<ContractCallStaticResult>
+    }
+
+    type ContractDeployResult = {
+        callerId : string
+        callerNonce : number
+        contractId : string
+        gasPrice : number
+        gasUsed : number
+        height : number
+        log : any[]
+        returnType : 'ok' | any
+        returnValue : string
+    }
+
+
+
+    /**
+     * Static contract call(using dry-run)
+     * @function
+     * @alias module:@aeternity/aepp-sdk/es/ae/contract
+     * @category async
+     * @param {String} source Contract source code
+     * @param {String} address Contract address
+     * @param {String} name Name of function to call
+     * @param {Array|String} args Argument's or callData for call/deploy transaction
+     * @param {Object} [options={}]  Options
+     * @param {String} [options.top] Block hash on which you want to call contract
+     * @param {String} [options.bytecode] Block hash on which you want to call contract
+     * @param {Object} [options.options]  Transaction options (fee, ttl, gas, amount, deposit)
+     * @param {Object} [options.options.filesystem] Contract external namespaces map
+     * @return {Promise<Object>} Result object
+     * @example
+     * const callResult = await client.contractCallStatic(source, address, fnName, args = [], { top, options = {} })
+     * {
+     *   result: TX_DATA,
+     *   decode: (type) => Decode call result
+     * }
+     */
+    // async function contractCallStatic (source, address, name, args = [], { top, options = {}, bytecode } = {}) {
+    type ContractCallStaticF = (source : string, address : address, name : string, args? : ArgsOrCallData , options : {
+
+        /**  Block hash on which you want to call contract */
+        top? : string
+
+        bytecode? : string,
+
+        options? : {
+            /** Contract external namespaces map */
+            filesystem? : ContractExternalNamespaceMap           
+        }
+
+    }) => Promise<ContractCallStaticResult>
+
+    type ContractCallStaticResult = {
+        result: any
+        decode : (type : any) => any
+    }
+
+    interface ContractAPI extends ContractBase, ContractACI { 
+        /**
+         * Compile contract source code
+         * @function
+         * @alias module:@aeternity/aepp-sdk/es/ae/contract
+         * @category async
+         * @param {String} source Contract sourece code
+         * @param {Object} [options={}] Transaction options (fee, ttl, gas, amount, deposit)
+         * @param {Object} [options.filesystem={}] Contract external namespaces map* @return {Promise<Object>} Result object
+         * @param {Object} [options.backend='aevm'] Contract backend version (aevm|fate)
+         * @return {Promise<Object>} Result object
+         * @example
+         * ```
+         * const compiled = await client.contractCompile(SOURCE_CODE)
+         * {
+         *   bytecode: CONTRACT_BYTE_CODE,
+         *   deploy: (init = [], options = {}) => Deploy Contract,
+         *   encodeCall: (fnName, args = []) => Prepare callData
+         * }
+         * ```
+         */
+        contractCompile(source : string, options? : {
+            filesystem? : ContractExternalNamespaceMap
+            backend? : CompilerBackend
+        }) : Promise<ContractCompileResult>
+
+
+        contractEncodeCall : ContractEncodeCallF 
+        contractDeploy : ContractDeployF
+
+
+        /**
+         * Call contract function
+         * 
+         * @param {String} source Contract source code
+         * @param {String} address Contract address or AENS name
+         * @param {String} name Name of function to call
+         * @param {Array|String} argsOrCallData Argument's array or callData for call function
+         * @example
+         * ```js
+         * const callResult = await client.contractCall(source, address, fnName, args = [], options)
+         * {
+         *   hash: TX_HASH,
+         *   result: TX_DATA,
+         *   decode: (type) => Decode call result
+         * }
+         * ```
+         */
+        // async function contractCall (source, address, name, argsOrCallData = [], options = {}) {
+        contractCall(source : string, address : string, name : string, argsOrCallData : ArgsOrCallData, options? : {
+            /** Contract external namespaces map */
+            filesystem? : ContractExternalNamespaceMap
+        }) : Promise<ContractCallReturnValue>
+
+        /**
+         * Decode contract call result data
+         * @param source - source code
+         * @param fn - function name
+         * @param callValue - result call data
+         * @param callResult - result status
+         * @example
+         * 
+         * ```js
+         * const decodedData = await client.contractDecodeData(SourceCode ,'functionName', 'cb_asdasdasd...', 'ok|revert')lt
+         * ```
+         */
+        //async function contractDecodeData (source, fn, callValue, callResult, options) {
+        contractDecodeData(source : string, fn : string, callValue : string, callResult : string, options? = {
+            /** Contract external namespaces map */
+            filesystem? : ContractExternalNamespaceMap         
+        }) : Promise<string>
+
+        contractCallStatic : ContractCallStaticF
+    }
+
+    export interface Contract extends ContractAPI, NodePool {
+    }
+
+    export interface ContractWithCompiler extends Contract, ContractCompilerApi {
+    }
+
+    export default ContractWithCompiler
+}
+
+// -----------------------------------------------------------------------------
 // es/node-pool
 
 /**
@@ -612,13 +1033,14 @@ declare module '@aeternity/aepp-sdk/es/ae' {
  */
 declare module '@aeternity/aepp-sdk/es/ae/universal' {
 
-
-    import {Accounts} from '@aeternity/aepp-sdk/accounts'
-    import Chain from '@aeternity/aepp-sdk/es/chain/node'
-
     import {Ae} from '@aeternity/aepp-sdk/es/ae'
+    import Chain from '@aeternity/aepp-sdk/es/chain/node'
+    import {Accounts} from '@aeternity/aepp-sdk/accounts'
+    import Contract from '@aeternity/aepp-sdk/ae/contract'
+
+    
     // export const Universal = Ae.compose(Accounts, Chain, Transaction, Aens, Contract, Oracle, GeneralizeAccount, {
-    export interface Universal extends Ae, Accounts {
+    export interface Universal extends Ae, Accounts, Contract {
 
     }
 

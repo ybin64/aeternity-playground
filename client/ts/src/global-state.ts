@@ -81,6 +81,7 @@ const ui = (state : UIState = {
             setTimeout(() => {
                 // The api-cache will use the value we return here
                 ae_utils.clearApiCache()
+                checkCompilerVersion()
                 updateAliceBalance()
                 updateBobBalance()
             })
@@ -146,6 +147,20 @@ export function updateAliceBalance() {
 
 export function updateBobBalance() {
     _updateBalance('SET_BOB_BALANCE', ae_wallet.BobWallet.keypair.publicKey)
+}
+
+export function checkCompilerVersion() {
+    const token = ae_logger.beginLog('global-state : checkCompilerVersion')
+    ae_utils.getCachedUniversal().then(universal => {
+        universal.getCompilerVersion().then(version => {
+            ae_logger.endLogOk(token, token.txt + ' : ' + version)
+        }).catch(e => {
+            ae_logger.endLogError(token, token.txt, e)
+        })
+    }).catch(e => {
+        ae_logger.endLogError(token, token.txt, e)
+    })
+    
 }
 
 // -----------------------------------------------------------------------------

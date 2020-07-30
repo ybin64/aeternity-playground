@@ -1,0 +1,3 @@
+contract Contract1 = 
+    entrypoint foo() = 123
+    entrypoint bar(x : int, y) = x + 42
