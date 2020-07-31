@@ -187,6 +187,7 @@ class _Contract1View extends React.PureComponent<Props, State> {
             doc : 'foo bar'
         }
 
+        this._onEditorDocUpdate = this._onEditorDocUpdate.bind(this)
         this._onCallEntryPoint = this._onCallEntryPoint.bind(this)
     }
 
@@ -215,7 +216,10 @@ class _Contract1View extends React.PureComponent<Props, State> {
 
                 <Grid item xs={6}>
                     <Paper className={p.classes.viewPaper}>
-                        <SophiaEditor className='sophia-editor' doc={s.doc}/>
+                        <SophiaEditor className='sophia-editor' 
+                            doc={s.doc}
+                            onDocUpdate={this._onEditorDocUpdate}
+                        />
                     </Paper>
                 </Grid>
 
@@ -251,6 +255,10 @@ class _Contract1View extends React.PureComponent<Props, State> {
             doc : doc,
             ast : result.ast
         })  
+    }
+
+    private _onEditorDocUpdate(doc : string) {
+        this._updateDoc(doc)
     }
 
     private async _onCallEntryPoint(entryPointName : string, args : string[]) {

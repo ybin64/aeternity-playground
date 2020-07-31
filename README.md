@@ -32,6 +32,8 @@ See [build-instructions](./client/ts/README.md).
 
 #### Call contract
 
+![foo](./images/contract-1-1.gif)
+
 **contract-1.aes**
 ```
 contract Contract1 = 
@@ -39,40 +41,48 @@ contract Contract1 =
     entrypoint bar(x : int, y) = x + 42
 ```
 
-**Example code**, load contract source, compile, deploy and call `foo(1, 23)`
+**Example code**, load contract source, compile, deploy and call `bar(1, 23)`
 ```typescript
-import * as utils from '../utils'
-import * as ae_utils from '../ae-utils'
+// client/ts/src/example-code.ts
+export async function callContractEntryPoint1() {
+    // Get the universal flavor
+    const universal = await ae_utils.getCachedUniversal()
 
+    // Load contract source
+    const contractSrc = await utils.getContract('contract-1.aes')
 
-// Get the universal flavor
-const universal = await ae_utils.getCachedUniversal()
+    // Compile
+    const compileResult = await universal.contractCompile(contractSrc)
 
-// Load contract source
-const contractSrc = await utils.getContract('contract-1.aes')
+    // Deploy
+    const deployResult = await compileResult.deploy([])
 
-// Compile
-const compileResult = await universal.contractCompile(contractSrc)
+    // Call entrypoint bar(1, 23)
+    const callResult = await deployResult.call('bar', ['1', '23'])
 
-// Deploy
-const deployResult = await compileResult.deploy([])
+    // Log result
+    const r = callResult.result
+    console.log('returnValue=' + r.returnValue)
+    console.log('gasPrice=' + r.gasPrice)
+    console.log('gasUsed=' + r.gasUsed)
+    console.log('height=' + r.height)
 
-// Call entrypoint bar(1, 23)
-const callResult = await deployResult.call('bar', ['1', '23'])
+    // Decode result value
+    const decodedValue = await callResult.decode()
+    console.log('decodedValue=' + decodedValue)
+}
+```
 
-// Log result
-const r = callResult.result
-console.log('returnValue=' + r.returnValue)
-console.log('gasPrice=' + r.gasPrice)
-console.log('gasUsed=' + r.gasUsed)
-console.log('height=' + r.height)
-
-// Decode result value
-const decodedValue = await callResult.decode()
-console.log('decodedValue=' + decodedValue)
+**Example output**
+```text
+returnValue=cb_Vl4/10M=
+gasPrice=1000000000
+gasUsed=22
+height=15060
+decodedValue=43
 ```
 
 
-![foo](./images/contract-1-1.gif)
+
 
 

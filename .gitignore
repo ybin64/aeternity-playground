@@ -1,6 +1,7 @@
 *dont-checkin*
 *.sw[a-z]
 .DS_Store
+*.gifcask
 
 node_modules
 .eunit

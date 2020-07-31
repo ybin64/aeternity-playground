@@ -7,9 +7,7 @@ import * as utils from './utils'
 import * as ae_utils from './ae-utils'
 
 /**
- * Load 'contract-1.aes'
- * 
- * 
+ *
  */
 export async function callContractEntryPoint1() {
     // Get the universal flavor

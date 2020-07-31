@@ -18,6 +18,7 @@ import Contract1Icon from '@material-ui/icons/Assignment'
 
 import {generateKeyPair} from '@aeternity/aepp-sdk/es/utils/crypto'
 
+import * as example_code from './example-code'
 
 import * as global_state from './global-state'
 
@@ -83,3 +84,8 @@ setTimeout(() => {
     global_state.updateAliceBalance()
     global_state.updateBobBalance()
 }, 500)
+
+
+setTimeout( () => {
+    //example_code.callContractEntryPoint1()
+}, 1000)

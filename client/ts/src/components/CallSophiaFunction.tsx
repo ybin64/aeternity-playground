@@ -61,6 +61,11 @@ function _getContractEntryPoints(contract : sophia_parser.AstItem_TopContractDec
     for (let child of contract.children) {
         if (child.type === 'entrypoint-decl') {
             const ep = child as sophia_parser.AstItem_EntrypointDecl
+
+            if (ep.children.length === 0) {
+                continue
+            }
+
             const funcDecl = ep.children[0]
 
             ret.push({
@@ -76,8 +81,6 @@ function _getFunctionDeclArgs(args : sophia_parser.AstItem_Expr[] | undefined) :
     let ret : FunctionDeclArgs[] = []
 
     if (args) {
-        console.log('args=', args)
-
         for (let arg of args) {
             if (arg.exprType === 'identifier') {
                 const id = arg as sophia_parser.AstItem_Expr_Identifier
@@ -195,6 +198,7 @@ interface Props extends PropsWithStyles {
 
 interface State {
     contracts : Contract[]
+    contract? : Contract
     entryPointName : string
     entryPointArgs : _EntryPointArgument[]
 }
@@ -247,7 +251,7 @@ class _CallSophiaFunction extends React.PureComponent<Props, State> {
                 >Call</Button>
 
                 <_EntryPointSelect 
-                    contract={s.contracts[0]} 
+                    contract={s.contract} 
                     entryPoint={s.entryPointName} 
                     onChange={this._onChangeEntryPoint}
                 />
@@ -259,19 +263,55 @@ class _CallSophiaFunction extends React.PureComponent<Props, State> {
     private _newAst(ast : sophia_parser.AstItem | undefined) {
         const contracts = _getContracts(ast)
 
-        console.log('CallSophiaFunction._newDoc : 30 : contracts=', contracts)
+        let contract : Contract | undefined = undefined
+
+        if (contracts.length > 0) {
+            contract = contracts[0]
+        }
+
+        let entryPointName = ''
+        let entryPointArgs : _EntryPointArgument[] = []
+
+        if (contract) {
+            const currentEp = contract.entryPoints.find(ep => ep.name === this.state.entryPointName)
+
+            if (currentEp) {
+                // Current entrypoint still in contract
+                entryPointName = currentEp.name
+
+                const epArgs = this._defaultEntryPointArgs(currentEp)
+
+                const oldArgNames = this.state.entryPointArgs.map(a => a.name)
+                const newArgNames = epArgs.map(a => a.name)
+   
+                if ( oldArgNames.join(',') === newArgNames.join(',')) {
+                    // Same argument names as before, use same arguments
+                    entryPointArgs = this.state.entryPointArgs
+                } else {
+                    // Changed argument names, us default values
+                    entryPointArgs = epArgs
+                }
+            }
+        }
 
         this.setState({
-            contracts : contracts
+            contracts : contracts,
+            contract  : contract,
+            entryPointName : entryPointName,
+            entryPointArgs : entryPointArgs
         })
+      
     }
 
     private _onChangeEntryPoint(ep : EntryPoint) {
-        console.log('onChangeEntryPoint : ep=', ep)
         this.setState({
             entryPointName : ep.name,
-            entryPointArgs : ep.args.map((a, ix) => {return {name : a.name, value : '' + (ix + 1)}})
+            entryPointArgs : this._defaultEntryPointArgs(ep)
         })
+    }
+
+    private _defaultEntryPointArgs(ep : EntryPoint) : _EntryPointArgument[] {
+        return ep.args.map((a, ix) => {return {name : a.name, value : '' + (ix + 1)}})
     }
 
     private _onArgValueChange(valueIx : number, value : string) {
