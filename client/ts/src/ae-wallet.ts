@@ -2,10 +2,13 @@
 
 import {KeyPair} from '@aeternity/aepp-sdk/es/utils/crypto'
 
+export type Balance = number | string
+
 export type AeWalletConfig = {
     name : string
     keypair : KeyPair
 }
+
 
 
 export const AliceWallet : AeWalletConfig = {
@@ -13,6 +16,7 @@ export const AliceWallet : AeWalletConfig = {
     keypair : {
         publicKey: "ak_29aHdDoASEJJNrxmWAAkTRK2nP1WT7UJzKpiB3EP7V8Ka6Pkv6", 
         secretKey: "10514de92009888e24711821268aa945c9e32e1406e887ee1e7a78da9adc0906972a0912a353aa97bb3739516ffe9b1f3ff450b307132021521a4826c06d4d27"
+        
     }
 }
 
@@ -24,13 +28,23 @@ export const BobWallet : AeWalletConfig = {
     }
 }
 
-export function getWalletName(publicKey: string) {
+export function getWalletName(publicKey: string) : string {
     if (publicKey == AliceWallet.keypair.publicKey) {
         return 'Alice'
     } else if (publicKey === BobWallet.keypair.publicKey) {
         return 'Bob'
     } else {
         return '<Unknown Wallet>'
+    }
+}
+
+export function hasWalletName(publicKey : string) : boolean {
+    if (publicKey == AliceWallet.keypair.publicKey) {
+        return true
+    } else if (publicKey === BobWallet.keypair.publicKey) {
+        return true
+    } else {
+        return false
     }
 }
 

@@ -169,7 +169,7 @@ function _Test1() {
 //
 
 interface Props extends PropsWithStyles {
-    readonly networkName? : ae_network.NetworkName
+    readonly networkName? : string
 }
 
 interface State {
@@ -202,9 +202,7 @@ class _Contract1View extends React.PureComponent<Props, State> {
         return <div className={clsx(p.classes.view, p.classes.contract1View)}>
             <Grid container spacing={3} >
                 <Grid item xs={12}>
-                    <Paper className={p.classes.viewPaper}>
-                        <NetworkConfiguration />
-                    </Paper>
+                    <NetworkConfiguration />
                 </Grid>
 
 {/*}

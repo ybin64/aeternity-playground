@@ -27,7 +27,7 @@ interface _TransferToProps extends PropsWithStyles {
 }
 
 function __TransferTo(p : _TransferToProps) {
-    const [amount, setAmount] = React.useState('100000');
+    const [amount, setAmount] = React.useState('1000000000000000000');
 
     const _onTransfer = () => {
         const token = ae_logger.beginLog('_onTransfer')

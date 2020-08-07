@@ -3,13 +3,17 @@ import clsx from 'clsx'
 
 import TableCell from '@material-ui/core/TableCell';
 import CircularProgress from '@material-ui/core/CircularProgress'
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip from '@material-ui/core/Tooltip'
+
+import IconButton from '@material-ui/core/IconButton'
 
 import DoneIcon from '@material-ui/icons/Done'
 import ErrorIcon from '@material-ui/icons/ErrorOutlineTwoTone'
+import DeleteIcon from '@material-ui/icons/DeleteOutline'
 
 
 import * as mui_styles from '../mui-styles'
+import * as global_state from '../global-state'
 import * as ae_logger from '../ae-logger'
 
 import * as utils from '../utils'
@@ -76,6 +80,8 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
                 customCell : this._customErrorCell
             }]
         }
+
+        this._clearTable = this._clearTable.bind(this)
     }
 
     render() {    
@@ -100,13 +106,20 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
         }
 
         return <div className={clsx(p.classes.component, p.classes.aeLogsTable)}>
+            <div className='log-table-buttons'>
+                <IconButton color="primary" component="span" onClick={this._clearTable}>
+                    <DeleteIcon />
+                </IconButton>
+            </div>
             <VirtualizedTable
+                className='log-virt-table'
                 headerHeight = {s.headerHeight}
                 rowHeight = {s.rowHeight}
                 columns={s.columns}
                 rowCount={p.logs.length}
                 rowGetter={(args : {index : number}) => _getRow(args.index)}
                 cellClassName={_cellClassName}
+                cellStyle={rowIndex => this._getRowStyle(this._getRow(rowIndex))}
             />
         </div>
     }
@@ -114,6 +127,14 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
     private _getRow(rowIndex : number) : ae_logger.LogItem {
         const logs = this.props.logs
         return logs[logs.length - rowIndex - 1]
+    }
+
+    private _getRowStyle(row : ae_logger.LogItem) : React.CSSProperties | undefined {
+        if (row.logArgs) {
+            if (row.logArgs.css) {
+                return row.logArgs.css
+            }
+        }
     }
 
     private _customStateCell(args : CustomCellArgs) {
@@ -132,7 +153,7 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
             content = <span>{text}</span>
         }
 
-        return <TableCell component='div' className={args.className}>{content}</TableCell>
+        return <TableCell component='div' className={args.className} style={this._getRowStyle(row)}>{content}</TableCell>
     }
 
     private _customBeginTimeCell(args : CustomCellArgs) {
@@ -146,7 +167,7 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
         }
         */
 
-        return <TableCell component='div' className={args.className}>{text}</TableCell>
+        return <TableCell component='div' className={args.className} style={this._getRowStyle(row)}>{text}</TableCell>
     }
 
     private _customElapsedTimeCell(args : CustomCellArgs) {
@@ -157,7 +178,7 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
             const dt = row.endTime.getTime() - row.beginTime.getTime()
             text = utils.msToStr(dt)  
         }
-        return <TableCell component='div' className={args.className}>{text}</TableCell>
+        return <TableCell component='div' className={args.className} style={this._getRowStyle(row)}>{text}</TableCell>
     }
 
     private _customTextCell(args : CustomCellArgs) {
@@ -168,7 +189,7 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
             text = row.endText
         }
 
-        return <TableCell component='div' className={args.className}>{text}</TableCell>
+        return <TableCell component='div' className={args.className} style={this._getRowStyle(row)}>{text}</TableCell>
     }
 
     private _customErrorCell(args : CustomCellArgs) {
@@ -183,8 +204,14 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
             <TableCell
                 component='div'
                 className={args.className}
+                style={this._getRowStyle(row)}
             >{text}</TableCell>
         </Tooltip>
+    }
+
+    private _clearTable() {
+        console.log('_clearTable : 00 ')
+        global_state.dispatch(global_state.setAeLogs([]))
     }
 }
 

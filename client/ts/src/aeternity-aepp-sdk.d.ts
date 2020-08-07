@@ -1,6 +1,7 @@
 /**
  * aeapp-sdk-js npm package TypeScript definitions
  * 
+ * Based on  @aeternity/aepp-sdk@7.6.0
  * NOTE: These definitions are far from complete
  * 
  */
@@ -68,7 +69,7 @@ declare module '@aeternity/aepp-sdk/es/account' {
          * @param opt Options
          * @returns Signed transaction
         */
-        signTransaction(tx : string, opt? : {} /*= {} */) : Promise<string>
+        signTransaction(tx : any, opt? : {} /*= {} */) : Promise<string>
     }
 }
 
@@ -168,7 +169,28 @@ declare module '@aeternity/aepp-sdk/contract' {
         options : any[]
     }
 
+    type Filesystem = any
+    type Backend = 'aevm'
+
     interface ContractBase {
+
+        /**
+         * Encode contract data
+         * @rtype (source: String, name: String, args: Array, options: Array) => callData: Promise[String]
+         * @param {String} source - Contract source code
+         * @param {String} name - Function name
+         * @param {Array} args - Function argument's
+         * @param {Object} [options={}]  Options
+         * @param {Object} [options.filesystem]  Contract external namespaces map
+         * @param {Object} [options.backend]  Contract vm(default: aevm)
+         * @return {String} - Contract encoded data
+         */
+        contractEncodeCallDataAPI(source : string, name : string, args : any[], options? : {
+            filesystem? : Filesystem,
+            backend?    : Backend
+        }) : Promise<string>
+
+
         /**
          * Get contract ACI
          * @function contractGetACI
@@ -182,10 +204,46 @@ declare module '@aeternity/aepp-sdk/contract' {
          * @param {Object} [options.backend]  Contract vm(default: aevm)
          * @return {Object} - Contract aci object
          */
-         contractGetACI() : Promise<ContractGetACIResult>
+        contractGetACI(source : string, options?: {
+             filesystem? : Filesystem
+             backend? : Backend
+         }) : Promise<ContractGetACIResult>
 
          // FIXME: More functions in ContractBase
 
+
+        /**
+         * FIXME: Got CORS error
+         * Decode contract call result data
+         * @rtype (source: String, fn: String, callValue: String, callResult: String, options: Array) => decodedResult: Promise[String]
+         * @param {String} source - Contract source
+         * @param {String} fn - Fn name
+         * @param {String} callValue - result data (cb_das...)
+         * @param {String} callResult - contract call result status('ok', 'revert', ...)
+         * @param {Object} [options={}]  Options
+         * @param {Object} [options.filesystem]  Contract external namespaces map
+         * @param {Object} [options.backend]  Contract vm(default: aevm)
+         * @return {String} - Decoded contract call result
+         */
+        contractDecodeCallResultAPI(source : string, fn : string, callValue : string, callResult, options? : {
+            filesystem? : Filesystem
+            backend?    : Backend
+        }) : Promise<any>
+
+
+
+        /**
+         * Decode data
+         * @function contractDecodeDataAPI
+         * @instance
+         * @abstract
+         * @category async
+         * @rtype (type: String, data: String) => decodedResult: Promise[String]
+         * @param {String} type - Contract call result type
+         * @param {String} data - Encoded contract call result
+         * @return {String} - Decoded contract call result
+         */
+        contractDecodeDataAPI(type : string, data: string) : Promise<string>
 
         /**
          * Decode contract call result data
@@ -247,9 +305,9 @@ declare module '@aeternity/aepp-sdk/contract' {
          * @return {Object} Object which contain bytecode of contract
          */
         compileContractAPI(code : string, options? : {
-            filesystem : any
-            backend : any
-        }) : any
+            filesystem? : any
+            backend ?: Backend
+        }) : Promise<string>
 
         /**
          * Set compiler url
@@ -345,6 +403,7 @@ declare module '@aeternity/aepp-sdk/ae/contract' {
     import ContractACI from '@aeternity/aepp-sdk/contract/aci'
     import ContractCompilerAPI from '@aeternity/aepp-sdk/contract/compiler'
 
+  
     export type ContractCompileResult = {
         bytecode : string 
         //  deploy: async (init, options = {}) => this.contractDeploy(bytecode, source, init, R.merge(opt, options)),
@@ -374,7 +433,6 @@ declare module '@aeternity/aepp-sdk/ae/contract' {
         log : any[],
         returnType : 'ok' | string
         returnValue : string
-
     }
 
     type ContractExternalNamespaceMap = any
@@ -560,10 +618,17 @@ declare module '@aeternity/aepp-sdk/ae/contract' {
          * ```
          */
         //async function contractDecodeData (source, fn, callValue, callResult, options) {
-        contractDecodeData(source : string, fn : string, callValue : string, callResult : string, options? = {
+        contractDecodeData(source : string, fn : string, callValue : string, callResult : 'ok' | string, options? : {
             /** Contract external namespaces map */
-            filesystem? : ContractExternalNamespaceMap         
-        }) : Promise<string>
+            filesystem? : ContractExternalNamespaceMap
+            backend? : CompilerBackend        
+        }) : Promise<
+            string 
+            | 
+            {
+                error : string[]
+            }
+        >
 
         contractCallStatic : ContractCallStaticF
     }
@@ -600,6 +665,22 @@ declare module '@aeternity/aepp-sdk/es/node-pool' {
          * @param select Select this node as current (default false)
          */
         addNode(name : string, nodeInstance : Node, select? : boolean /*= false */) : void
+
+        /**
+         * Get information about node
+         * @example
+         * ```
+         * nodePool.getNodeInfo() // { name, version, networkId, protocol, ... }
+         * ```
+         */
+        getNodeInfo() : {
+            version : string
+            name    : string
+            nodeNetworkId : string
+            url           : string
+            internalUrl   : string
+            consensudProtocolVersion : string
+        }
     }
 
     export default NodePool
@@ -752,7 +833,7 @@ declare module '@aeternity/aepp-sdk/es/chain' {
          * @param options Options
          * @returns The transaction as it was mined
          */
-        balance(address : string, options? : BalanceOptions) : Promise<number>
+        balance(address : string, options? : BalanceOptions) : Promise<number | string>
 
         /**
          * Obtain current height of the chain
@@ -806,10 +887,25 @@ declare module '@aeternity/aepp-sdk/es/channel' {
         // Documented events
         'error' | 'onChainTx' | 'onWithdrawLocked' | 'withdrawLocked' | 'ownDepositLocked' | 'depositLocked' | 
         OnInternalEvents 
-        
+    
+    // FIXME: I believe there are more status changes
+    export type OnEventCbArg_StatusChanged = 
+        'connected' | 'disconnected' | 'accepted' | 'halfSigned' | 'signed' |'open'
+
+    export type OnEventCbArg_Message = {
+        channel_id : string
+        from       : string
+        to         : string
+        info       : string 
+    }
 
     /** Channel */
     export interface Channel {
+
+        /**
+         * Close the connection
+         */
+        disconnect : () => void
 
         /**
          * Register event listener function
@@ -826,12 +922,62 @@ declare module '@aeternity/aepp-sdk/es/channel' {
          * @param event Event name
          * @param callback Callback function
          */
-        on (event : OnEvents, callback : (args : any) => any) : any
+        on(event : OnEvents, callback : (args : any) => any) : any
+        on(event : 'statusChanged', callback : (status : OnEventCbArg_StatusChanged) => void) : void
+        on(event : 'message', callback : (msg : OnEventCbArg_Message) => void) : void
+        on(event : 'onChainTx', callback : (tx : string) => void) : void
+        on(event : 'stateChanged', callback : (tx : string) => void) : void
 
+        /**
+         * Send generic message
+         *
+         * If message is an object it will be serialized into JSON string
+         * before sending.
+         *
+         * If there is ongoing update that has not yet been finished the message
+         * will be sent after that update is finalized.
+         *
+         * @param {String|Object} message
+         * @param {String} recipient - Address of the recipient
+         * @example 
+         * ```
+         * channel.sendMessage(
+         *   'hello world',
+         *   'ak_Y1NRjHuoc3CGMYMvCmdHSBpJsMDR6Ra2t5zjhRcbtMeXXLpLH'
+         * )
+         * ```
+         */
+        sendMessage(message : string | object, recipient : string) : void
+            
         /**
          * Get current status
          */
         status() : ChannelStatus
+
+        /**
+         * Get current state
+         *
+         * @return {Promise<Object>}
+         */
+        state() : Promise<object>
+
+        /**
+         * Get current round
+         *
+         * If round cannot be determined (for example when channel has not been opened)
+         * it will return `null`.
+         */
+        round () : number | null
+
+        /**
+         * Get channel id
+         */
+        id() : string
+        
+        /**
+         * Get channel's fsm id
+         */
+        fsmId() : string
 
         /**
          * Trigger a transfer update
@@ -862,11 +1008,267 @@ declare module '@aeternity/aepp-sdk/es/channel' {
          * @param sign Function which verifies and signs offchain transaction
          * @param metadata
          */
-
         update(from : string, to : string, amount : number, sign : (tx : any) => any, metadata? : string[]) : Promise<any>
 
+
+        /**
+         * Trigger create contract update
+         *
+         * The create contract update is creating a contract inside the channel's internal state tree.
+         * The update is a change to be applied on top of the latest state.
+         *
+         * That would create a contract with the poster being the owner of it. Poster commits initially
+         * a deposit amount of tokens to the new contract.
+         *
+         * @example
+         * ```
+         * channel.createContract({
+         *   code: 'cb_HKtpipK4aCgYb17wZ...',
+         *   callData: 'cb_1111111111111111...',
+         *   deposit: 10,
+         *   vmVersion: 3,
+         *   abiVersion: 1
+         * }).then(({ accepted, signedTx, address }) => {
+         *   if (accepted) {
+         *     console.log('New contract has been created')
+         *     console.log('Contract address:', address)
+         *   } else {
+         *     console.log('New contract has been rejected')
+         *   }
+         * })
+         * ```
+         */
+        createContract(options : { 
+            /** Api encoded compiled AEVM byte code */
+            code : string, 
+            /** Api encoded compiled AEVM call data for the code */
+            callData : string, 
+            /** Initial amount the owner of the contract commits to it */
+            deposit : number, 
+            /** Version of the AEVM */
+            vmVersion : number, 
+            /** Version of the ABI */
+            abiVersion : number
+        }, sign : (args : any) => void) : Promise<{
+            accepted : boolean
+            address  : string
+            signedTx : string
+        }>
+
+
+
+
+        /**
+         * Trigger call a contract update
+         *
+         * The call contract update is calling a preexisting contract inside the channel's
+         * internal state tree. The update is a change to be applied on top of the latest state.
+         *
+         * That would call a contract with the poster being the caller of it. Poster commits
+         * an amount of tokens to the contract.
+         *
+         * The call would also create a call object inside the channel state tree. It contains
+         * the result of the contract call.
+         *
+         * It is worth mentioning that the gas is not consumed, because this is an off-chain
+         * contract call. It would be consumed if it were a on-chain one. This could happen
+         * if a call with a similar computation amount is to be forced on-chain.
+         *
+         * @param {Object} options
+         * @param {Function} sign - Function which verifies and signs contract call transaction
+         * @return {Promise<Object>}
+         * @example 
+         * 
+         * ```
+         * channel.callContract({
+         *   contract: 'ct_9sRA9AVE4BYTAkh5RNfJYmwQe1NZ4MErasQLXZkFWG43TPBqa',
+         *   callData: 'cb_1111111111111111...',
+         *   amount: 0,
+         *   abiVersion: 1
+         * }).then(({ accepted, signedTx }) => {
+         *   if (accepted) {
+         *     console.log('Contract called succesfully')
+         *   } else {
+         *     console.log('Contract call has been rejected')
+         *   }
+         * })
+         * ```
+         */
+        callContract(options : { 
+            /** Amount the caller of the contract commits to it */
+            amount   : string | number, 
+
+            /** ABI encoded compiled AEVM call data for the code */
+            callData   : string, 
+
+            /** Address of the contract to call*/
+            contract   : string, 
+
+            /** Version of the ABI */
+            abiVersion : number}, sign : (args : any) => any) : Promise<{
+                accepted : boolean
+                signedTx : string
+            }>
+
+
+        
+        /**
+         * Trigger a force progress contract call
+         * This call is going on-chain
+         * @param {Object} options
+         * @param {String} [options.amount] - Amount the caller of the contract commits to it
+         * @param {String} [options.callData] - ABI encoded compiled AEVM call data for the code
+         * @param {Number} [options.contract] - Address of the contract to call
+         * @param {Number} [options.abiVersion] - Version of the ABI
+         * @param {Number} [options.gasPrice=1000000000] - Gas price
+         * @param {Number} [options.gas=1000000] - Gas limit
+         * @param {Function} sign - Function which verifies and signs contract force progress transaction
+         * @param {{ onOnChainTxL: Function }} callbacks
+         * @return {Promise<Object>}
+         * @example channel.forceProgress({
+         *   contract: 'ct_9sRA9AVE4BYTAkh5RNfJYmwQe1NZ4MErasQLXZkFWG43TPBqa',
+         *   callData: 'cb_1111111111111111...',
+         *   amount: 0,
+         *   abiVersion: 1,
+         *   gasPrice: 1000005554
+         * }).then(({ accepted, signedTx }) => {
+         *   if (accepted) {
+         *     console.log('Contract force progress call successful')
+         *   } else {
+         *     console.log('Contract force progress call has been rejected')
+         *   }
+         * })
+         */
+        //function forceProgress ({ amount, callData, contract, abiVersion, gas = 1000000, gasPrice = 1000000000, nonce }, sign, { onOnChainTx } = {}) {
+        
+        /**
+         * Call contract using dry-run
+         *
+         * In order to get the result of a potential contract call, one might need to
+         * dry-run a contract call. It takes the exact same arguments as a call would
+         * and returns the call object.
+         *
+         * The call is executed in the channel's state but it does not impact the state
+         * whatsoever. It uses as an environment the latest channel's state and the current
+         * top of the blockchain as seen by the node.
+         *
+         * @param {Object} options
+         * @param {String} [options.amount] - Amount the caller of the contract commits to it
+         * @param {String} [options.callData] - ABI encoded compiled AEVM call data for the code
+         * @param {Number} [options.contract] - Address of the contract to call
+         * @param {Number} [options.abiVersion] - Version of the ABI
+         * @return {Promise<Object>}
+         * @example channel.callContractStatic({
+         *   contract: 'ct_9sRA9AVE4BYTAkh5RNfJYmwQe1NZ4MErasQLXZkFWG43TPBqa',
+         *   callData: 'cb_1111111111111111...',
+         *   amount: 0,
+         *   abiVersion: 1
+         * }).then(({ returnValue, gasUsed }) => {
+         *   console.log('Returned value:', returnValue)
+         *   console.log('Gas used:', gasUsed)
+         * })
+         */
+        //async function callContractStatic ({ amount, callData, contract, abiVersion }) {
+
+        /**
+         * Get contract call result
+         *
+         * The combination of a caller, contract and a round of execution determines the
+         * contract call. Providing an incorrect set of those results in an error response.
+         *
+         * @param {Object} options
+         * @param {String} [options.caller] - Address of contract caller
+         * @param {String} [options.contract] - Address of the contract
+         * @param {Number} [options.round] - Round when contract was called
+         * @return {Promise<Object>}
+         * @example channel.getContractCall({
+         *   caller: 'ak_Y1NRjHuoc3CGMYMvCmdHSBpJsMDR6Ra2t5zjhRcbtMeXXLpLH',
+         *   contract: 'ct_9sRA9AVE4BYTAkh5RNfJYmwQe1NZ4MErasQLXZkFWG43TPBqa',
+         *   round: 3
+         * }).then(({ returnType, returnValue }) => {
+         *   if (returnType === 'ok') console.log(returnValue)
+         * })
+         */
+        //async function getContractCall ({ caller, contract, round }) {
+
+        getContractCall(options : {
+            /** Address of contract caller */
+            caller, 
+            /** Address of the contract */
+            contract, 
+            /** Round when contract was called*/
+            round
+        }) : Promise<{
+            callerId : string
+            callerNonce : number
+            contractId : string
+            gasPrice : number
+            gasUsed  : number
+            height   : number
+            log      : any[]
+            returnType : 'ok'
+            returnValue : string
+        }>
+
+        /**
+         * Get contract latest state
+         *
+         * @param {String} contract - Address of the contract
+         * @return {Promise<Object>}
+         * @example channel.getContractState(
+         *   'ct_9sRA9AVE4BYTAkh5RNfJYmwQe1NZ4MErasQLXZkFWG43TPBqa'
+         * ).then(({ contract }) => {
+         *   console.log('deposit:', contract.deposit)
+         * })
+         */
+        //async function getContractState (contract) {
+        getContractState(contract : string) : Promise<any>
+
+        /**
+         * Leave channel
+         *
+         * It is possible to leave a channel and then later reestablish the channel
+         * off-chain state and continue operation. When a leave method is called,
+         * the channel fsm passes it on to the peer fsm, reports the current mutually
+         * signed state and then terminates.
+         *
+         * The channel can be reestablished by instantiating another Channel instance
+         * with two extra params: existingChannelId and offchainTx (returned from leave
+         * method as channelId and signedTx respectively).
+         *
+         * @return {Promise<Object>}
+         * @example 
+         * ```
+         * channel.leave().then(({ channelId, signedTx }) => {
+         *   console.log(channelId)
+         *   console.log(signedTx)
+         * })
+         * ``
+         */
+        //function leave () {
+        leave : () => Promise<object>
+
+
+        /**
+         * Trigger mutual close
+         *
+         * At any moment after the channel is opened, a closing procedure can be triggered.
+         * This can be done by either of the parties. The process is similar to the off-chain updates.
+         *
+         * @param {Function} sign - Function which verifies and signs mutual close transaction
+         * @return {Promise<String>}
+         * @example 
+         * ```
+         * channel.shutdown(
+         *   async (tx) => await account.signTransaction(tx)
+         * ).then(tx => console.log('on_chain_tx', tx))
+         * ```
+         */
+        shutdown : (sign : (tx : any) => Promise<string>) => Promise<String>
     }
 
+
+    export type SignTag = string
 
     /**
      * Channel params
@@ -942,7 +1344,7 @@ declare module '@aeternity/aepp-sdk/es/channel' {
         debug? : boolean
 
         /** Function which verifies and signs transactions */
-        sign : (tag : any, tx : any) => void
+        sign : (tag : SignTag, tx : any) => Promise<string>
     }
 
     /**
@@ -966,6 +1368,53 @@ declare module '@aeternity/aepp-sdk/es/tx/builder' {
 
     // FIXME: export default { calculateMinFee, calculateFee, unpackTx, unpackRawTx, buildTx, buildRawTx, validateParams, buildTxHash }
 
+    /**
+     * FIXME: Is this a public type?
+     */
+    export type _Tx = {
+        VSN : '1'
+        tag : '11' | string
+
+        encodedTx : _EncodedTx
+        signatures : any[]
+
+        // FIXME: A lot more fields
+        // Is this a public type?
+    }
+
+    export type _EncodedTx = {
+        txType : UnpackTxType
+        binary : any
+        rlpEncoded : any
+        tx : _EncodedTx_Tx
+    }
+
+    export type _EncodedTx_Tx = _EncodedTx_Tx_ChannelCreate 
+
+    export type _EncodedTx_Tx_ChannelCreate = {
+        VSN : "1",
+        channelReserve : string
+        delegateIds : string
+        fee : string
+        initiator : string
+        initiatorAmount : string
+        lockPeriod : string
+        nonce : string
+        responder : string
+        responderAmount : string
+        stateHash : string
+        tag : string
+        ttl : string
+    }
+
+    // FIXME: Add all txType
+    export type UnpackTxType = 'channelCreate' | 'signedTx'
+    export type UnpackTxResult = {
+        txType : UnpackTxType
+        rlpEncoded : Uint8Array
+        binary : any,
+        tx : _Tx
+    }
     
     /**
      * Unpack transaction hash
@@ -1049,6 +1498,18 @@ declare module '@aeternity/aepp-sdk/es/ae/universal' {
     }) : Promise<Universal>
 
     export default UniversalF;
+}
+
+/**
+ * See es/index.js
+ */
+declare module '@aeternity/aepp-sdk/es' {
+
+    import ChannelF from '@aeternity/aepp-sdk/es/channel'
+
+
+    export const Channel = ChannelF
+
 }
 
 

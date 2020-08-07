@@ -40,13 +40,15 @@ import {Link} from 'react-router-dom'
 
 import NetworkSelect from '../components/NetworkSelect'
 
-type _ListItem = {
+import * as global_state from '../global-state'
+
+export type DrawerListItemData = {
     text : string
     link : string
     icon : React.ReactElement
 }
 
-export function drawerListItems(items : _ListItem[]) {
+export function drawerListItems(items : DrawerListItemData[]) {
     return <div>
     {
         items.map((item, ix) => {
@@ -80,13 +82,19 @@ function Copyright() {
 
 // -----------------------------------------------------------------------------
 
-function _AppBar(p: {
+type _AppBarProps = {
     classes : Styles
     open : boolean
     handleDrawerOpen : () => void
-}) {
+    mainViewName? : string
+}
+function __AppBar(p: _AppBarProps) {
     const classes = p.classes
     
+    let nameSuffix = ''
+    if (p.mainViewName) {
+        nameSuffix = ' - ' + p.mainViewName
+    }
     return <AppBar position="absolute" className={clsx(classes.appBar, p.open && classes.appBarShift)}>
         <Toolbar className={classes.toolbar}>
             <IconButton
@@ -99,13 +107,20 @@ function _AppBar(p: {
                 <MenuIcon />
             </IconButton>
             <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                Aeternity Playground
+                {'Aeternity Playground' + nameSuffix}
             </Typography>
 
             <NetworkSelect />
         </Toolbar>
     </AppBar>
 }
+
+const _AppBar = global_state.connect<any, any, Partial<_AppBarProps>, any>((state : global_state.AppState) : Partial<_AppBarProps> => {
+    //console.log('############ _appBar : state connect : 00 : ', state.ui.mainViewName)
+    return {
+        mainViewName : state.ui.mainViewName
+    }
+})(__AppBar)
 
 
 // -----------------------------------------------------------------------------
@@ -157,8 +172,9 @@ function _Logs(p : {
 
 
 interface Props extends PropsWithStyles {
-    children : NonNullable<React.ReactElement>
-    drawerMainListItems : React.ReactElement
+    readonly children : NonNullable<React.ReactElement>
+    readonly drawerMainListItems : React.ReactElement
+    readonly mainViewName? : string
 }
 
 interface State {
@@ -174,6 +190,18 @@ class _Dashboard extends React.PureComponent<Props, State> {
             openDrawer : false,
             showLogs   : true
         }
+    }
+
+    componentDidMount() {
+//        console.log('Dashboard.componentDidMount : this.props.children=', this.props.children)
+    }
+
+    componetDidUpdate(prevProps : Props) {
+        /*
+        if (this.props.children !== prevProps.children) {
+            console.log('Dashboard.componendDidUpdate : this.props.children=', this.props.children)
+        }
+        */
     }
 
     render() {
@@ -198,7 +226,7 @@ class _Dashboard extends React.PureComponent<Props, State> {
             <div className={classes.root}>
                 <CssBaseline />
 
-                <_AppBar classes={classes} open={s.openDrawer} handleDrawerOpen={handleDrawerOpen} />
+                <_AppBar classes={classes} open={s.openDrawer} handleDrawerOpen={handleDrawerOpen} mainViewName={p.mainViewName}/>
                 
                 <_Drawer classes={classes} open={s.openDrawer} handleDrawerClose={handleDrawerClose} 
                     mainListItems={p.drawerMainListItems}
@@ -208,7 +236,9 @@ class _Dashboard extends React.PureComponent<Props, State> {
                     <div className={classes.appBarSpacer} />
                     <Container fixed maxWidth="xl" className={classes.container} children={p.children} />
                     <_Logs open={s.showLogs} /> 
+                    {/*}
                     <Copyright />
+                    */}
                 </main>
             </div>
         )
@@ -216,3 +246,10 @@ class _Dashboard extends React.PureComponent<Props, State> {
 }
 
 export default withStyles(styles)(_Dashboard)
+/*
+export default global_state.connect<any, any, Partial<Props>, any>((state : global_state.AppState) : Partial<Props> => {
+    return {
+        mainViewName : state.ui.mainViewName
+    }
+})(withStyles(styles)(_Dashboard))
+*/

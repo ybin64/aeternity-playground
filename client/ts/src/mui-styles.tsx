@@ -255,9 +255,15 @@ export const styles = (theme: Theme) => {
         },
 
         networkConfiguration : {
+            '& .nc-details' : {
+                width : '100%'
+            },
+
+            /*
             '& .nc-name' : {
                 marginBottom : theme.spacing(2)
             },
+            */
             '& .nc-config' : {
                 display : 'flex',
                 justifyContent : 'space-between'
@@ -271,13 +277,57 @@ export const styles = (theme: Theme) => {
 
         aeLogsTable : {
             minHeight : '380px',
-            '& .virtualized-table' : {
+
+            '& .log-table-buttons' : {
+                //position : 'absolute',
+                //right    : '40px'
+                display : 'flex',
+                justifyContent : 'flex-end',
+                marginTop : '-15px'
+            },
+
+            '& .log-virt-table' : {
+                marginTop : '-45px',
+                width : 'calc(100% - 40px)',
                 minHeight : '380px'
+            },
+
+        },
+
+        channelState : {
+            //overflow : 'auto',
+            minHeight : '200px',
+            maxHeight : '300px',
+
+            '& .channel-items' : {
+                maxHeight : '260px',
+                overflow : 'auto'  
+            },
+
+            '& .item-row-balance' : {
+                color : 'grey',
+                fontStyle : 'italic'
+            },
+
+            '& .item-row-artificial-info' : {
+                backgroundColor : 'rgba(211, 211, 211, 0.5)', //'#d3d3d3',
+                fontStyle : 'italic'
+            },
+
+            '& .item-part' : {
+                display : 'inline-block'
+            },
+            '& .item-part-timestamp' : {
+                width : '80px'
+            },
+            '& .item-part-type' : {
+                width : '100px'
             }
         },
 
-
+        // ---------------------------------------------------------------------
         // Views
+
         contract1View : {
             '& .sophia-editor' : {
                 minHeight : '250px',

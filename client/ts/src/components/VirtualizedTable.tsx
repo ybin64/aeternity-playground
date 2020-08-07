@@ -6,6 +6,7 @@ import TableCell from '@material-ui/core/TableCell'
 import * as mui_styles from '../mui-styles'
 
 import { AutoSizer, Column, Table, TableHeaderProps, TableCellProps, Index } from 'react-virtualized'
+import { CSSProperties } from '@material-ui/core/styles/withStyles'
 
 
 // Originally from https://material-ui.com/components/tables/#virtualized-table
@@ -25,6 +26,7 @@ export type ColumnDescription = {
 }
 
 interface Props extends mui_styles.PropsWithStyles {
+    readonly className? : string
     readonly headerHeight : number
     readonly rowHeight : number
 
@@ -34,6 +36,7 @@ interface Props extends mui_styles.PropsWithStyles {
     readonly rowGetter : (args : {index : number}) => any
 
     readonly cellClassName? : (rowIndex: number, args : any) => string
+    readonly cellStyle? : (rowIndex : number) => React.CSSProperties | undefined
 }
 
 interface State {
@@ -101,12 +104,23 @@ class _VirtualizedTable extends React.PureComponent<Props, State> {
             })
         }
 
+        let style : React.CSSProperties = {
+            height : rowHeight
+        }
+
+        if (this.props.cellStyle) {
+            const additionalStyle = this.props.cellStyle(args.rowIndex)
+            if (additionalStyle) {
+                style = {...style, ...additionalStyle}
+            }
+        }
         return (
           <TableCell
             component="div"
             className={className}
             variant="body"
-            style={{ height: rowHeight }}
+            //style={{ height: rowHeight }}
+            style={style}
             align={(columnIndex != null && columns[columnIndex].numeric) || false ? 'right' : 'left'}
           >
             {cellData}
@@ -122,7 +136,7 @@ class _VirtualizedTable extends React.PureComponent<Props, State> {
             onRowClick : () => {}
         }
         
-        return <div className={clsx(p.classes.component, p.classes.virtualizedTable, 'virtualized-table')}>
+        return <div className={clsx(p.classes.component, p.classes.virtualizedTable, 'virtualized-table', p.className)}>
                 <AutoSizer>
                     {({ height, width }) => {                    
                     return <Table

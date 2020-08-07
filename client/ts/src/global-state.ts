@@ -4,12 +4,22 @@ import { connect as rr_connect} from "react-redux"
 export const connect = rr_connect
 
 
-import {AeNetworkConfig, LocalhostNetwork, TestNet1Network, NetworkName} from './ae-network'
+import {AeNetworkConfig, AeNetworkInfo, LocalhostNetwork, TestNet1Network} from './ae-network'
 import * as ae_wallet from './ae-wallet'
 import * as ae_utils from './ae-utils'
 import * as ae_logger from './ae-logger'
 
+
+
+export type RuntimeConfig = {
+    networks : AeNetworkInfo[]
+}
+
+type Balance = ae_wallet.Balance
+
 type _ActionTypes = 
+    'SET_RUNTIME_CONFIG' |
+    'SET_MAIN_VIEW_NAME' | 
     'SELECT_NETWORK' |
     'SET_AE_LOGS' |
     'SET_ALICE_BALANCE' | 'SET_BOB_BALANCE' 
@@ -17,11 +27,13 @@ type _ActionTypes =
 // -----------------------------------------------------------------------------
 
 export type UIState = {
-    networkName : NetworkName
+    runtimeConfig : RuntimeConfig
+    mainViewName : string
+    networkName : string
     networkConfig : AeNetworkConfig
 
-    aliceBalance : BigInt | null
-    bobBalance   : BigInt | null
+    aliceBalance : Balance | null
+    bobBalance   : Balance | null
     logs : ae_logger.LogItem[]
 }
 
@@ -32,12 +44,28 @@ export type UIState = {
 type _UIAction = {
     type : _ActionTypes
 
-    networkName : NetworkName
-    balance : BigInt | null
+    runtimeConfig : RuntimeConfig
+    mainViewName : string
+    networkName : string
+    balance : Balance | null
     logs : ae_logger.LogItem[]
 }
 
-export function selectNetwork(networkName : NetworkName) : _UIAction {
+export function setRuntimeConfig(config : RuntimeConfig) : _UIAction {
+    return {
+        type : 'SET_RUNTIME_CONFIG',
+        runtimeConfig : config
+    } as _UIAction
+}
+
+export function setMainViewName(name : string) : _UIAction {
+    return {
+        type : 'SET_MAIN_VIEW_NAME',
+        mainViewName : name
+    } as _UIAction
+}
+
+export function selectNetwork(networkName : string) : _UIAction {
     return {
         type : 'SELECT_NETWORK',
         networkName : networkName
@@ -57,14 +85,21 @@ export function setAeLogs(logs : ae_logger.LogItem[]) : _UIAction {
 // -----------------------------------------------------------------------------
 // Reducers
 
-const _networkConfigs : {[key in NetworkName] : AeNetworkConfig} = {
-    'localhost' : {...LocalhostNetwork.config},
-    'testnet'   : {...TestNet1Network.config}
+const _defaultRuntimeConfig : RuntimeConfig = {
+    networks : [LocalhostNetwork]
 }
+/*
+const _networkConfigs : {[key in NetworkName] : AeNetworkConfig} = {
+    'localhost' : {...LocalhostNetwork.config}
+    //'testnet'   : {...TestNet1Network.config}
+}
+*/
 const _defaultNetwork = {...LocalhostNetwork}
 //const _defaultNetwork = {...TestNet1Network}
 
 const ui = (state : UIState = {
+    runtimeConfig : _defaultRuntimeConfig,
+    mainViewName : '',
     networkName : _defaultNetwork.name,
     networkConfig : _defaultNetwork.config,
     aliceBalance : null,
@@ -73,10 +108,41 @@ const ui = (state : UIState = {
 }, action : _UIAction) : UIState => {
 
     switch (action.type) {
+        case 'SET_RUNTIME_CONFIG' : {
+            let networkName = state.networkName
+            let networkConfig = state.networkConfig
+
+            if (action.runtimeConfig.networks.length > 0) {
+                const nw = action.runtimeConfig.networks[0]
+                networkName = nw.name
+                networkConfig = nw.config
+            }
+            return {...state,
+                runtimeConfig : action.runtimeConfig,
+                networkName : networkName,
+                networkConfig : networkConfig
+            }
+        }
+
+        case 'SET_MAIN_VIEW_NAME' : {
+            return {...state,
+                mainViewName : action.mainViewName
+            }
+        }
+
         case 'SELECT_NETWORK' : {
             let ret = {...state}
+
+            const network = state.runtimeConfig.networks.find(nw => nw.name === action.networkName)
+
+            if (!network) {
+                const errText = `Can't find network "${action.networkName}`
+                console.error('global-state.ts : ' + errText)
+                throw new Error(errText)
+            }
+
             ret.networkName = action.networkName
-            ret.networkConfig = _networkConfigs[action.networkName]
+            ret.networkConfig = network.config
 
             setTimeout(() => {
                 // The api-cache will use the value we return here
@@ -116,7 +182,7 @@ const ui = (state : UIState = {
 
 // -----------------------------------------------------------------------------
 
-function _setBalance(action : _ActionTypes, balance : BigInt | null) {
+function _setBalance(action : _ActionTypes, balance : Balance | null) {
     dispatch({
         type : action,
         balance : balance
@@ -128,7 +194,7 @@ function _updateBalance(action : _ActionTypes, address : string) {
 
     ae_utils.getBalance(address).then(result => {
         ae_logger.endLogOk(token, token.txt + ' ' + result)
-        _setBalance(action, BigInt(result))
+        _setBalance(action, result)
     }).catch(e => {
         ae_logger.endLogError(token, token.txt, e)
         if (ae_utils.isAccountNotFoundError(e)) {

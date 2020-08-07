@@ -1,0 +1,8 @@
+contract StateChannel1_1 =
+    record state = { total : int }
+
+    entrypoint init() : state = 
+        { total = 1 }
+
+    entrypoint foo1() = 11
+    entrypoint foo2(v : int) = v + 42

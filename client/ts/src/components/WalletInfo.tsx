@@ -16,7 +16,7 @@ import * as ae_utils from '../ae-utils'
 
 import {PropsWithStyles, withStyles, styles} from '../mui-styles'
 
-import {AeWalletConfig, AliceWallet, BobWallet} from '../ae-wallet'
+import {AeWalletConfig, AliceWallet, BobWallet, Balance} from '../ae-wallet'
 
 function _WalletHeader(p : {
     name : string
@@ -86,7 +86,7 @@ function _WalletHeader(p : {
 interface Props extends PropsWithStyles {
     readonly wallet : AeWalletConfig
     readonly globalNetwork : boolean
-    readonly balance? : BigInt | null
+    readonly balance? :  Balance | null
 }
 
 
@@ -103,7 +103,7 @@ function _WalletInfo(p : Props) {
     if ((p.balance === null) || (p.balance === undefined)) {
         balance = <span>-</span>
     } else {
-        balance = <span>{p.balance.toString()}</span>
+        balance = <span>{p.balance}</span>
     }
 
     return <Card className={p.classes.component}>
@@ -137,7 +137,7 @@ export default WalletInfo
 
 interface WalletWithGlobalCheckProps {
     networkName? : string
-    balance? : BigInt | null
+    balance? : Balance | null
 }
 
 function _walletWithGlobalCheck(wallet : AeWalletConfig, valueKey : 'aliceBalance' | 'bobBalance') {

@@ -14,16 +14,14 @@ import * as ae_network from '../ae-network'
 
 
 interface Props extends PropsWithStyles {
-    readonly networkName? : ae_network.NetworkName
+    readonly networkName? : string
 }
 
 function _MainView(p : Props) {
     return <div className={p.classes.view}>
         <Grid container spacing={3} >
             <Grid item xs={12}>
-                <Paper className={p.classes.viewPaper}>
-                    <NetworkConfiguration />
-                </Paper>
+                <NetworkConfiguration />  
             </Grid>
             <Grid item xs={6}>
                 <AliceWalletInfo />

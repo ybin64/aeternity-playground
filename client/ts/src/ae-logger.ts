@@ -1,6 +1,7 @@
 import * as global_state from './global-state'
 import * as ae_utils from './ae-utils'
 import * as ae_network from './ae-network'
+import { CSSProperties } from '@material-ui/core/styles/withStyles'
 
 export type LoggerToken = {
     id  : number
@@ -8,9 +9,13 @@ export type LoggerToken = {
     txt : string
 }
 
+export type LogArgs = {
+    css? : CSSProperties
+}
+
 export type LogItem = {
     id : number
-    network : ae_network.NetworkName
+    network : string
 
     beginTime : Date
     endTime?  : Date
@@ -18,19 +23,41 @@ export type LogItem = {
     endText   : string
     errorText? : string
     state : 'begin' | 'end-ok' | 'end-error'
+
+    logArgs? : LogArgs
 }
 
-export function beginLog(txt: string) : LoggerToken {
-    const token : LoggerToken = {
+function _newToken(txt : string) : LoggerToken {
+    return {
         id : _id++,
         beginTime : new Date(),
         txt : txt
     }
+}
 
+
+
+
+export function log(txt : string, args? : LogArgs) {
+    const logItem = _createBeginLogItem(_newToken(txt), args)
+
+    logItem.state = 'end-ok'
+
+    _addAndDispatchLogItem(logItem)
+}
+
+export function error(txt : string) {
+    const logItem = _createBeginLogItem(_newToken(txt))
+
+    logItem.state = 'end-error'
+
+    _addAndDispatchLogItem(logItem)
+}
+
+
+export function beginLog(txt: string) : LoggerToken {
+    const token = _newToken(txt)
     _addBeginLog(token)
-
-    //console.info(`${_prefix('BEGIN      ', token)}${txt}`)
-
     return token
 }
 
@@ -81,20 +108,34 @@ function _findLogItem(items: LogItem[], id: number) : LogItem {
     throw new Error(`Can't find log item with id=${id}`)
 }
 
-function _addBeginLog(token : LoggerToken) {
-    let items = _logItems.slice()
-
-    items.push({
+function _createBeginLogItem(token : LoggerToken, args? : LogArgs) : LogItem {
+    const ret : LogItem = {
         id : token.id,
         network : global_state.getUiState().networkName,
         beginTime : token.beginTime,
         state : 'begin',
         text : token.txt,
         endText : ''
-    })
+    }
+
+    if (args) {
+        ret.logArgs = args
+    }
+
+    return ret
+}
+
+function _addAndDispatchLogItem(item : LogItem) {
+    let items = _logItems.slice()
+
+    items.push(item)
 
     _logItems = items
     global_state.dispatch(global_state.setAeLogs(_logItems))
+}
+
+function _addBeginLog(token : LoggerToken) {
+    _addAndDispatchLogItem(_createBeginLogItem(token))
 }
 
 function _addEndLogOk(token : LoggerToken, txt : string) {
