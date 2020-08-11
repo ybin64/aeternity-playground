@@ -8,6 +8,7 @@ import {AeNetworkConfig, AeNetworkInfo, LocalhostNetwork, TestNet1Network} from 
 import * as ae_wallet from './ae-wallet'
 import * as ae_utils from './ae-utils'
 import * as ae_logger from './ae-logger'
+import * as global_event from './global-event'
 
 
 
@@ -147,15 +148,25 @@ const ui = (state : UIState = {
             setTimeout(() => {
                 // The api-cache will use the value we return here
                 ae_utils.clearApiCache()
+
+                global_event.nodeChange(ret.networkName, ret.networkConfig)
+
                 checkCompilerVersion()
                 updateAliceBalance()
                 updateBobBalance()
+
+
             })
 
             return ret
         }
 
         case 'SET_AE_LOGS' : {
+            // FIXME: Clearing logs not strictly 100% correct, but but works for our use cases
+            // A correct solution would be if the ae_logger functions worked on global-state instead
+            if (action.logs.length === 0) {
+                ae_logger.clearLogs()
+            }
             return {...state,
                 logs : action.logs
             }
@@ -172,8 +183,6 @@ const ui = (state : UIState = {
                 bobBalance : action.balance
             }
         }
-
-
 
         default : 
             return state

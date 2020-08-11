@@ -210,7 +210,6 @@ class _AeLogsTable extends React.PureComponent<Props, State> {
     }
 
     private _clearTable() {
-        console.log('_clearTable : 00 ')
         global_state.dispatch(global_state.setAeLogs([]))
     }
 }

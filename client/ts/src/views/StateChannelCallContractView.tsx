@@ -27,7 +27,7 @@ import * as utils from '../utils'
 
 import {AliceWalletInfo, BobWalletInfo} from '../components/WalletInfo'
 import * as ae_wallet from '../ae-wallet'
-//import {Channel} from '@aeternity/aepp-sdk/es'
+
 
 import Channel, {Channel as ChannelType} from '@aeternity/aepp-sdk/es/channel'
 import * as es_channel from '@aeternity/aepp-sdk/es/channel'
@@ -680,7 +680,6 @@ class _StateChannelCallContractView extends React.PureComponent<Props, State> {
     }
 
     private _onEditorDocUpdate(doc : string) {
-        console.log('_onEditorDocUpdate : doc=', doc)
         this._updateContractSrc(doc)
     }
 

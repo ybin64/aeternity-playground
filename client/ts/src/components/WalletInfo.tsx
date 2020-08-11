@@ -17,6 +17,7 @@ import * as ae_utils from '../ae-utils'
 import {PropsWithStyles, withStyles, styles} from '../mui-styles'
 
 import {AeWalletConfig, AliceWallet, BobWallet, Balance} from '../ae-wallet'
+import AeBalance from './AeBalance'
 
 function _WalletHeader(p : {
     name : string
@@ -103,7 +104,7 @@ function _WalletInfo(p : Props) {
     if ((p.balance === null) || (p.balance === undefined)) {
         balance = <span>-</span>
     } else {
-        balance = <span>{p.balance}</span>
+        balance = <AeBalance balance={p.balance} noColor marginLeft='3px' />
     }
 
     return <Card className={p.classes.component}>
@@ -142,8 +143,6 @@ interface WalletWithGlobalCheckProps {
 
 function _walletWithGlobalCheck(wallet : AeWalletConfig, valueKey : 'aliceBalance' | 'bobBalance') {
     return global_state.connect((state : global_state.AppState) : Partial<WalletWithGlobalCheckProps> => {
-        //console.log(`..._walletWithGlobalCheck : ${wallet.name} : ${valueKey} : ${state.ui[valueKey]}`)
-
         return {
             networkName : state.ui.networkName,
             balance : state.ui[valueKey]
@@ -155,7 +154,3 @@ function _walletWithGlobalCheck(wallet : AeWalletConfig, valueKey : 'aliceBalanc
 
 export const AliceWalletInfo = _walletWithGlobalCheck(AliceWallet, 'aliceBalance')
 export const BobWalletInfo = _walletWithGlobalCheck(BobWallet, 'bobBalance')
-
-
-
-

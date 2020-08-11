@@ -1,10 +1,49 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import clsx from 'clsx'
 
 import {EditorState, EditorView, basicSetup} from "@codemirror/next/basic-setup"
 import {Transaction, Text} from '@codemirror/next/state'
 
-interface Props  {
+import {linter, Diagnostic} from "@codemirror/next/lint"
+
+import {StreamSyntax} from "@codemirror/next/stream-syntax"
+import Foo from './codemirror-lang-sophia'
+
+import * as sophia_parser from 'aesophia-parser'
+import * as mui_styles from '../mui-styles'
+
+class SophiaLinter {
+
+}
+
+function _sophiaErrWarnToDiagnostic(severity: 'error' | 'warning', ew : sophia_parser.ParseErrWarn) : Diagnostic {
+    return {
+        from : ew.location.begin.offset,
+        to   : ew.location.end.offset,
+        severity : severity,
+        message : ew.message
+    }
+}
+function sophiaLinter() :(view : EditorView) => Promise<readonly Diagnostic[]> {
+    return (view : EditorView) => {
+ 
+        const src = view.state.doc.sliceString(0)
+ 
+        return new Promise<readonly Diagnostic[]>((resolve) => {
+            const scanner = new sophia_parser.Scanner(src)
+            const result = sophia_parser.parse(scanner)
+            
+            let ret : Diagnostic[] = []
+            ret = ret.concat(result.errors.map(e => _sophiaErrWarnToDiagnostic('error', e)))
+            ret = ret.concat(result.warnings.map(e => _sophiaErrWarnToDiagnostic('warning', e)))
+
+            resolve(ret)
+        })
+    }
+}
+
+interface Props extends mui_styles.PropsWithStyles {
     readonly className? : string
     readonly doc : string
     readonly onDocUpdate : (doc : string) => void
@@ -36,7 +75,11 @@ class _SophiaEditor extends React.PureComponent<Props, State> {
 
         let state = EditorState.create({
             doc : this.props.doc,
-            extensions : [basicSetup]
+            extensions : [
+                basicSetup,
+                linter(sophiaLinter()),
+                new StreamSyntax(Foo()).extension
+            ]
         })
 
         this._ew = new EditorView({
@@ -72,15 +115,14 @@ class _SophiaEditor extends React.PureComponent<Props, State> {
     render() {
         const p = this.props
         const s = this.state
-        return <div className={p.className}></div>
+        return <div className={clsx(p.classes.sophiaEditor, p.className)}></div>
     }
 
-    private _newDoc(doc : string) {
-        
+    private _newDoc(doc : string) {     
         this._handleChanges = false
         this._ew.dispatch({
             changes : [
-                {from : 0, to : this._ew.state.doc.length}, // Delete current conntent
+                {from : 0, to : this._ew.state.doc.length}, // Delete current content
                 {from : 0, insert : doc}
             ]
         })
@@ -124,5 +166,4 @@ class _SophiaEditor extends React.PureComponent<Props, State> {
     }
 }
 
-export default _SophiaEditor
-
+export default mui_styles.withStyles(mui_styles.styles)(_SophiaEditor)

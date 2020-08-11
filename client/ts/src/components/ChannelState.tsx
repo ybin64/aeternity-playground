@@ -12,69 +12,8 @@ import * as utils from '../utils'
 import * as ae_wallet from '../ae-wallet'
 
 import {ChannelStateItem} from '../state-channel-utils'
+import AeBalance from './AeBalance'
 
-function _splitBalance(balance : string) : string[] {
-    let ret : string[] = []
-
-    for (let ix = 0; ix < balance.length; ix++) {
-        const ch = balance[balance.length - ix - 1]
-        if ((ix % 3) == 0) {
-            ret.unshift(ch)
-        } else {
-            ret[0] = ch + ret[0]
-        }
-    }
-    return ret
-}
-
-/*
-function _test(b : string) {
-    console.log(`##### _splitBalance(${b})=`, _splitBalance(b))
-}
-
-
-_test('')
-_test('1')
-_test('12')
-_test('123')
-_test('1234')
-_test('12345')
-_test('123456')
-_test('1234567')
-_test('12345678')
-*/
-
-function _balance(p : {readonly balance : string, readonly noColor?: boolean}) {
-    const b = p.balance
-    if (b.length > 0) {
-        const css : React.CSSProperties = {}
-
-        if (p.noColor !== true) {
-            if (b[0] === '-') {
-                css.color = 'red'
-            } else if (b !== '0') {
-                css.color = 'green'
-            }
-        }
-
-        const splitItems = _splitBalance(b)
-
-        const items = splitItems.map((item, ix) => {
-            const style : React.CSSProperties = {}
-
-            if ((splitItems.length > 1) && (((splitItems.length - ix -1) % 2) === 0)) {
-                //style.textDecoration = 'underline'
-                //style.fontStyle = 'italic'
-                style.borderBottom = '1px solid currentColor'
-            }
-
-            return <span key={ix} style={style}>{item}</span>
-        })
-
-        return <span style={css}>{items}</span>
-    }
-    return <span>{p.balance}</span>
-}
 
 // -----------------------------------------------------------------------------
 
@@ -96,6 +35,7 @@ class _ChannelItem extends React.PureComponent<_ChannelItemProps> {
     }
     render() {
         const p = this.props
+        const balanceMarginLeft = '2px'
 
         const item = p.item
         const timeMs = item.time.getTime() - p.startTime.getTime()
@@ -111,18 +51,18 @@ class _ChannelItem extends React.PureComponent<_ChannelItemProps> {
             const bitems : (React.ReactElement | React.ReactText)[] = []
             let key = 1000
 
-            bitems.push(<_balance key={key++} balance={item.balance! + ''} noColor />)
+            bitems.push(<AeBalance key={key++} balance={item.balance!} noColor marginLeft={balanceMarginLeft}/>)
             bitems.push(' : ')
             bitems.push(item.info!)
 
             if (item.balanceDiffPrev) {
                 bitems.push(' : ΔPrev ')
-                bitems.push(<_balance key={key++} balance={item.balanceDiffPrev} />)
+                bitems.push(<AeBalance key={key++} balance={item.balanceDiffPrev} marginLeft={balanceMarginLeft}/>)
             }
 
             if (p.showBalanceDiffStart && item.balanceDiffStart) {
                 bitems.push(' : ΔStart ')
-                bitems.push(<_balance key={key++} balance={item.balanceDiffStart} />)         
+                bitems.push(<AeBalance key={key++} balance={item.balanceDiffStart} marginLeft={balanceMarginLeft}/>)         
             }
 
             info = <span>{bitems}</span>
@@ -197,7 +137,7 @@ class _ChannelState extends React.PureComponent<Props, State> {
         items.reverse()
 
         if (p.balance !== '') {
-            balance = <span><span> : Balance </span><_balance balance={p.balance} noColor/></span>
+            balance = <span><span> : Balance </span><AeBalance balance={p.balance} noColor marginLeft='3px'/></span>
         }
 
         if (ae_wallet.hasWalletName(p.accountId)) {

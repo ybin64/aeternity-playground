@@ -4,9 +4,19 @@
 Written in TypeScript with [React](https://reactjs.org/) and [material-ui](https://material-ui.com/).
 
 
-The TS definitions are in [client/ts/src/aeternity-aepp-sdk.d.ts](client/ts/src/aeternity-aepp-sdk.d.ts). <br>NOTE: They are not complete, updated on a "need to use" basis.
+TypeScript definitions are in [client/ts/src/aeternity-aepp-sdk.d.ts](client/ts/src/aeternity-aepp-sdk.d.ts). <br>NOTE: The TypeScript definitions are not complete, updated on a "need to use" basis.
 
 
+## Functionality
+- Select network
+- Transfer funds between Alice and Bob
+- Call contract
+- State channel, send messages.
+- State channel, call contract
+
+## Example
+
+![example-1.gif](./images/example-1.gif)
 
 ## Quick start
 
@@ -45,6 +55,8 @@ You will get "Alice"/"Bob" "Account not found" warnings in the log window until 
 
 Transfer funds between "Alice" and "Bob" at [http://localhost:9000/views/transfer-alice-bob.html](http://localhost:9000/views/transfer-alice-bob.html), to get rid of the warnings.
 
+
+
 ## Network
 
 I'm using a docker node setup, see [./dev-network/README.md](./dev-network/README.md)
@@ -71,70 +83,6 @@ See [build-instructions](./client/ts/README.md).
 You can add your own network configurations in [client/ts/dist/runtime-config.json](client/ts/dist/runtime-config.json)
 
 
-### Functionality
-- Select network
-- Transfer funds between Alice and Bob
-- Call contract
-
-#### Dashboard
-**Note:** If Alice or Bob wallets shows up as "Account not found" on localhost, just transfer funds between them to add the accounts.
-
-![dashboard-1.png](./images/dashboard-1.png)
-
-#### Transfer between Alice and Bob
-![dashboard-1.png](./images/transfer-alice-bob-1.png)
-
-#### Call contract
-
-![foo](./images/contract-1-1.gif)
-
-**contract-1.aes**
-```
-contract Contract1 = 
-    entrypoint foo() = 123
-    entrypoint bar(x : int, y) = x + 42
-```
-
-**Example code**, load contract source, compile, deploy and call `bar(1, 23)`
-```typescript
-// client/ts/src/example-code.ts
-export async function callContractEntryPoint1() {
-    // Get the universal flavor
-    const universal = await ae_utils.getCachedUniversal()
-
-    // Load contract source
-    const contractSrc = await utils.getContract('contract-1.aes')
-
-    // Compile
-    const compileResult = await universal.contractCompile(contractSrc)
-
-    // Deploy
-    const deployResult = await compileResult.deploy([])
-
-    // Call entrypoint bar(1, 23)
-    const callResult = await deployResult.call('bar', ['1', '23'])
-
-    // Log result
-    const r = callResult.result
-    console.log('returnValue=' + r.returnValue)
-    console.log('gasPrice=' + r.gasPrice)
-    console.log('gasUsed=' + r.gasUsed)
-    console.log('height=' + r.height)
-
-    // Decode result value
-    const decodedValue = await callResult.decode()
-    console.log('decodedValue=' + decodedValue)
-}
-```
-
-**Example output**
-```text
-returnValue=cb_Vl4/10M=
-gasPrice=1000000000
-gasUsed=22
-height=15060
-decodedValue=43
-```
 
 
 

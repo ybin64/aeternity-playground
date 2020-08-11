@@ -98,6 +98,11 @@ let _logItems : LogItem[] = []
 let _id = 0
 
 
+export function clearLogs() {
+    _logItems = []
+    _id = 0
+}
+
 function _findLogItem(items: LogItem[], id: number) : LogItem {
     for (let item of items) {
         if (item.id === id) {

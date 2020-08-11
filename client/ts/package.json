@@ -30,6 +30,7 @@
     "react-virtualized": "^9.21.2",
     "redux": "^4.0.5",
     "source-map-loader": "^1.0.0",
+    "ts-events": "^3.4.0",
     "ts-loader": "^7.0.5",
     "typescript": "^3.9.5",
     "webpack": "^4.43.0",

@@ -325,6 +325,13 @@ export const styles = (theme: Theme) => {
             }
         },
 
+
+        sophiaEditor : {   
+            '& .CodeMirror-lint-tooltip' : {
+                zIndex: 9999
+            }     
+        },
+
         // ---------------------------------------------------------------------
         // Views
 
